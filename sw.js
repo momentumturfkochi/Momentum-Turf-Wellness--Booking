@@ -1,4 +1,4 @@
-const CACHE_NAME = 'momentum-turf-v2';
+const CACHE_NAME = 'momentum-turf-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -28,7 +28,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request).then((res) => res || caches.match('./index.html')))
+    fetch(event.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(event.request).then((res) => res || caches.match('./index.html')))
   );
 });
 
@@ -38,6 +44,17 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(
       self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
         clients.forEach((client) => client.postMessage({ type: 'BACKGROUND_SYNC_COMPLETE' }));
+      })
+    );
+  }
+});
+
+// Periodic Background Sync API
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'refresh-turf-slots') {
+    event.waitUntil(
+      self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: 'PERIODIC_SYNC_REFRESH' }));
       })
     );
   }
@@ -64,15 +81,4 @@ self.addEventListener('notificationclick', (event) => {
       return self.clients.openWindow('./index.html');
     })
   );
-});
-
-// Periodic Background Sync API
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'refresh-turf-slots') {
-    event.waitUntil(
-      self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
-        clients.forEach((client) => client.postMessage({ type: 'PERIODIC_SYNC_REFRESH' }));
-      })
-    );
-  }
 });

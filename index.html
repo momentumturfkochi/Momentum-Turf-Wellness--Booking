@@ -111,21 +111,40 @@
           />
         </section>
 
-        <!-- 3. Pick an Available Time Slot -->
-        <section aria-labelledby="slot-heading">
-          <div class="flex items-center justify-between mb-2">
+        <!-- 3. Pick Duration & Time Slots -->
+        <section aria-labelledby="slot-heading" class="space-y-2.5">
+          <div class="flex items-center justify-between">
             <h2 id="slot-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              3. Tap 1 or More Time Slots
+              3. Select Duration &amp; Time Slots
             </h2>
-            <div class="flex items-center gap-3 text-xs text-slate-500">
-              <span class="inline-flex items-center gap-1">
-                <span class="w-2.5 h-2.5 rounded-sm bg-white border border-slate-300 inline-block"></span> Open
-              </span>
-              <span class="inline-flex items-center gap-1">
-                <span class="w-2.5 h-2.5 rounded-sm bg-slate-200 inline-block"></span> Booked
-              </span>
-            </div>
+            <button
+              id="clear-slots-btn"
+              type="button"
+              class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 hidden"
+            >
+              Clear Slots
+            </button>
           </div>
+
+          <!-- Quick Duration Selector -->
+          <div class="bg-slate-100 p-1 rounded-xl grid grid-cols-4 gap-1" id="duration-buttons">
+            <button type="button" data-hrs="1" class="dur-btn py-1.5 rounded-lg text-xs font-semibold bg-white text-emerald-800 shadow-sm transition">
+              1 Hour
+            </button>
+            <button type="button" data-hrs="2" class="dur-btn py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+              2 Hours
+            </button>
+            <button type="button" data-hrs="3" class="dur-btn py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+              3 Hours
+            </button>
+            <button type="button" data-hrs="0" class="dur-btn py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+              Multi-Tap
+            </button>
+          </div>
+          <p id="duration-hint" class="text-[11px] text-emerald-700 font-medium">
+            Tap any start time below — or tap multiple slots to combine hours.
+          </p>
+
           <div id="slots-grid" class="grid grid-cols-3 gap-2"></div>
           <p class="text-[11px] text-slate-500 mt-2">
             Peak evening hours (6:00 PM – 10:00 PM) use floodlight rates.
@@ -452,6 +471,7 @@
       activeTab: 'book',
       zone: 'turf',
       date: todayStr,
+      durationHrs: 1,
       selectedSlots: [],
       bookings: loadSavedBookings()
     };
@@ -483,6 +503,9 @@
     const dateInput = document.getElementById('booking-date');
     const dateLabel = document.getElementById('selected-date-label');
     const slotsGrid = document.getElementById('slots-grid');
+    const clearSlotsBtn = document.getElementById('clear-slots-btn');
+    const durButtons = document.querySelectorAll('.dur-btn');
+    const durationHint = document.getElementById('duration-hint');
     const playerNameInput = document.getElementById('player-name');
     const playerPhoneInput = document.getElementById('player-phone');
     const formError = document.getElementById('form-error');
@@ -548,7 +571,19 @@
       currentView.classList.add('flex');
 
       // Update zone button styles
-      zoneButtons.forEach((btn) => {
+      durButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.durationHrs = Number(btn.dataset.hrs);
+        render();
+      });
+    });
+
+    clearSlotsBtn.addEventListener('click', () => {
+      state.selectedSlots = [];
+      render();
+    });
+
+    zoneButtons.forEach((btn) => {
         const isActive = btn.dataset.zone === state.zone;
         btn.className = isActive
           ? 'zone-btn text-left p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 transition'
@@ -558,6 +593,25 @@
       // Update date label
       dateInput.value = state.date;
       dateLabel.textContent = state.date === todayStr ? 'Today' : state.date;
+
+      // Update duration selector buttons & clear button
+      durButtons.forEach((b) => {
+        const hrs = Number(b.dataset.hrs);
+        const active = hrs === state.durationHrs;
+        b.className = active
+          ? 'dur-btn py-1.5 rounded-lg text-xs font-semibold bg-white text-emerald-800 shadow-sm transition'
+          : 'dur-btn py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition';
+      });
+      if (state.durationHrs > 1) {
+        durationHint.textContent = `Tap a start slot to auto-select ${state.durationHrs} consecutive hours (or tap more slots to add).`;
+      } else {
+        durationHint.textContent = 'Tap as many open time slots as you want to book & pay together.';
+      }
+      if (state.selectedSlots.length > 0) {
+        clearSlotsBtn.classList.remove('hidden');
+      } else {
+        clearSlotsBtn.classList.add('hidden');
+      }
 
       // Render time slots with price
       slotsGrid.innerHTML = '';
@@ -585,8 +639,17 @@
         }
 
         btn.addEventListener('click', () => {
+          const idx = TIME_SLOTS.findIndex((x) => x.time === slot);
           if (isSelected) {
             state.selectedSlots = state.selectedSlots.filter((t) => t !== slot);
+          } else if (state.durationHrs > 1 && state.selectedSlots.length === 0) {
+            const picked = [];
+            for (let k = 0; k < state.durationHrs && (idx + k) < TIME_SLOTS.length; k++) {
+              const candidate = TIME_SLOTS[idx + k].time;
+              const cKey = makeKey(state.zone, state.date, candidate);
+              if (!state.bookings[cKey]) picked.push(candidate);
+            }
+            state.selectedSlots = picked;
           } else {
             state.selectedSlots = [...state.selectedSlots, slot];
           }
