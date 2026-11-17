@@ -73,16 +73,25 @@
     }
   ],
   "display_override": [
+    "tabbed",
     "window-controls-overlay",
     "standalone",
     "minimal-ui"
   ],
   "related_applications": [],
   "prefer_related_applications": false,
-  "iarc_rating_id": "",
+  "iarc_rating_id": "PENDING-IARC-FROM-PLAY-CONSOLE",
   "categories": [
     "sports",
     "lifestyle",
     "utilities"
-  ]
+  ],
+  "tab_strip": {
+    "home_tab": {
+      "url": "./index.html"
+    },
+    "new_tab_button": {
+      "url": "./index.html"
+    }
+  }
 }

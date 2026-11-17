@@ -65,3 +65,14 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// Periodic Background Sync API
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'refresh-turf-slots') {
+    event.waitUntil(
+      self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: 'PERIODIC_SYNC_REFRESH' }));
+      })
+    );
+  }
+});

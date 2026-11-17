@@ -732,6 +732,21 @@
       try {
         const perm = await Notification.requestPermission();
         updateNotifButton();
+
+    async function registerPeriodicSync() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if ('periodicSync' in reg) {
+            await reg.periodicSync.register('refresh-turf-slots', {
+              minInterval: 12 * 60 * 60 * 1000
+            });
+          }
+        }
+      } catch (e) {}
+    }
+    registerPeriodicSync();
+
         if (perm === 'granted') {
           sendBookingNotification('Momentum Turf Alerts Enabled', 'You will receive booking confirmations here.');
         }
@@ -740,13 +755,28 @@
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'BACKGROUND_SYNC_COMPLETE') {
+        if (event.data && (event.data.type === 'BACKGROUND_SYNC_COMPLETE' || event.data.type === 'PERIODIC_SYNC_REFRESH')) {
           syncFromCloud();
         }
       });
     }
 
     updateNotifButton();
+
+    async function registerPeriodicSync() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if ('periodicSync' in reg) {
+            await reg.periodicSync.register('refresh-turf-slots', {
+              minInterval: 12 * 60 * 60 * 1000
+            });
+          }
+        }
+      } catch (e) {}
+    }
+    registerPeriodicSync();
+
 
         } else {
           localStorage.removeItem(SYNC_URL_KEY);
@@ -1014,6 +1044,21 @@
       try {
         const perm = await Notification.requestPermission();
         updateNotifButton();
+
+    async function registerPeriodicSync() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if ('periodicSync' in reg) {
+            await reg.periodicSync.register('refresh-turf-slots', {
+              minInterval: 12 * 60 * 60 * 1000
+            });
+          }
+        }
+      } catch (e) {}
+    }
+    registerPeriodicSync();
+
         if (perm === 'granted') {
           sendBookingNotification('Momentum Turf Alerts Enabled', 'You will receive booking confirmations here.');
         }
@@ -1022,13 +1067,28 @@
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'BACKGROUND_SYNC_COMPLETE') {
+        if (event.data && (event.data.type === 'BACKGROUND_SYNC_COMPLETE' || event.data.type === 'PERIODIC_SYNC_REFRESH')) {
           syncFromCloud();
         }
       });
     }
 
     updateNotifButton();
+
+    async function registerPeriodicSync() {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if ('periodicSync' in reg) {
+            await reg.periodicSync.register('refresh-turf-slots', {
+              minInterval: 12 * 60 * 60 * 1000
+            });
+          }
+        }
+      } catch (e) {}
+    }
+    registerPeriodicSync();
+
 
 
   </script>
