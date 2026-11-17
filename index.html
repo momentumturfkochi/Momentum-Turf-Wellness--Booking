@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Momentum Turf &amp; Wellness — Spot Booking</title>
+  <meta name="theme-color" content="#047857" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex justify-center p-3 sm:p-6">
+  <!-- Mobile App Container -->
+  <main class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200 flex flex-col">
+    <!-- App Header -->
+    <header class="bg-emerald-700 text-white px-5 pt-5 pb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-emerald-200 font-semibold">Kothad, Kochi</p>
+          <h1 class="text-xl font-bold mt-0.5">Momentum Turf &amp; Wellness</h1>
+        </div>
+        <span class="bg-emerald-600/80 border border-emerald-400/40 text-xs font-medium px-2.5 py-1 rounded-full">
+          Kochi
+        </span>
+      </div>
+      <p class="text-sm text-emerald-100 mt-1">All-weather indoor turf &amp; cricket nets</p>
+
+      <!-- Navigation Tabs -->
+      <nav class="grid grid-cols-3 gap-1.5 mt-4 bg-emerald-800/60 p-1 rounded-xl" aria-label="App views">
+        <button
+          id="tab-book"
+          type="button"
+          class="py-2 rounded-lg text-xs font-semibold bg-white text-emerald-800 shadow-sm transition"
+        >
+          Book a Spot
+        </button>
+        <button
+          id="tab-bookings"
+          type="button"
+          class="py-2 rounded-lg text-xs font-semibold text-emerald-100 hover:text-white transition"
+        >
+          Bookings (<span id="bookings-count">0</span>)
+        </button>
+        <button
+          id="tab-owner"
+          type="button"
+          class="py-2 rounded-lg text-xs font-semibold text-emerald-100 hover:text-white transition"
+        >
+          Owner Sync
+        </button>
+      </nav>
+    </header>
+
+    <!-- View 1: Book a Spot -->
+    <div id="view-book" class="flex-1 flex flex-col">
+      <div class="p-5 space-y-5 flex-1">
+        <!-- 1. Choose Pitch / Zone -->
+        <section aria-labelledby="pitch-heading">
+          <h2 id="pitch-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+            1. Choose Your Zone
+          </h2>
+          <div class="grid grid-cols-2 gap-2.5" id="zone-buttons">
+            <button
+              type="button"
+              data-zone="turf"
+              class="zone-btn text-left p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 transition"
+            >
+              <div class="text-sm font-semibold text-slate-900">5-a-Side Turf</div>
+              <div class="text-xs text-slate-600 mt-0.5">Football &amp; Turf Cricket</div>
+              <div class="text-xs font-semibold text-emerald-700 mt-1.5">₹1,000 – ₹1,200/hr</div>
+            </button>
+            <button
+              type="button"
+              data-zone="cricket"
+              class="zone-btn text-left p-3 rounded-xl border-2 border-slate-200 bg-white hover:border-slate-300 transition"
+            >
+              <div class="text-sm font-semibold text-slate-900">Leather Pitch</div>
+              <div class="text-xs text-slate-600 mt-0.5">Indoor Practice Net</div>
+              <div class="text-xs font-semibold text-emerald-700 mt-1.5">₹600 – ₹800/hr</div>
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. Pick a Date -->
+        <section aria-labelledby="date-heading">
+          <div class="flex items-center justify-between mb-2">
+            <h2 id="date-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              2. Pick a Date
+            </h2>
+            <span id="selected-date-label" class="text-xs font-medium text-emerald-700"></span>
+          </div>
+          <input
+            id="booking-date"
+            type="date"
+            class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+          />
+        </section>
+
+        <!-- 3. Pick an Available Time Slot -->
+        <section aria-labelledby="slot-heading">
+          <div class="flex items-center justify-between mb-2">
+            <h2 id="slot-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              3. Tap a Time Slot
+            </h2>
+            <div class="flex items-center gap-3 text-xs text-slate-500">
+              <span class="inline-flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-sm bg-white border border-slate-300 inline-block"></span> Open
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-sm bg-slate-200 inline-block"></span> Booked
+              </span>
+            </div>
+          </div>
+          <div id="slots-grid" class="grid grid-cols-3 gap-2"></div>
+          <p class="text-[11px] text-slate-500 mt-2">
+            Peak evening hours (6:00 PM – 10:00 PM) use floodlight rates.
+          </p>
+        </section>
+
+        <!-- 4. Player Details -->
+        <section aria-labelledby="details-heading" class="pt-1">
+          <h2 id="details-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+            4. Your Details
+          </h2>
+          <div class="space-y-2.5">
+            <div>
+              <label for="player-name" class="sr-only">Your Name</label>
+              <input
+                id="player-name"
+                type="text"
+                placeholder="Player or team name"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+            <div>
+              <label for="player-phone" class="sr-only">Mobile Number</label>
+              <input
+                id="player-phone"
+                type="tel"
+                inputmode="numeric"
+                maxlength="10"
+                placeholder="10-digit mobile number"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+              />
+            </div>
+            <p id="form-error" class="text-xs text-rose-600 font-medium hidden"></p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Bottom Booking Bar -->
+      <footer class="border-t border-slate-200 bg-slate-50 p-4 space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <div>
+            <span class="text-slate-500 block text-xs">Selected Slot</span>
+            <span id="summary-text" class="font-semibold text-slate-900">No slot selected</span>
+          </div>
+          <div class="text-right">
+            <span class="text-slate-500 block text-xs">Total</span>
+            <span id="summary-price" class="font-bold text-emerald-700 text-base">₹0</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs">
+          <div>
+            <span class="text-slate-600">Booking UPI Phone:</span>
+            <span class="font-bold text-emerald-800 ml-1" id="upi-number-text">9495915845</span>
+          </div>
+          <button
+            id="copy-upi-btn"
+            type="button"
+            class="px-2.5 py-1 rounded-lg bg-white border border-emerald-300 text-emerald-700 font-semibold hover:bg-emerald-100 transition"
+          >
+            Copy
+          </button>
+        </div>
+        <button
+          id="book-btn"
+          type="button"
+          disabled
+          class="w-full py-3 rounded-xl font-semibold text-sm text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed transition"
+        >
+          Book Spot Now
+        </button>
+      </footer>
+    </div>
+
+    <!-- View 2: My Bookings -->
+    <div id="view-bookings" class="flex-1 p-5 hidden flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Saved Reservations
+        </h2>
+        <span class="text-xs text-slate-500">Saved on this device</span>
+      </div>
+      <div id="bookings-list" class="space-y-3 flex-1"></div>
+    </div>
+
+    <!-- View 3: Owner & Cloud Sync -->
+    <div id="view-owner" class="flex-1 p-5 hidden flex-col space-y-5">
+      <section class="grid grid-cols-2 gap-3">
+        <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200">
+          <span class="text-xs text-emerald-700 font-medium block">Active Bookings</span>
+          <span id="owner-total-count" class="text-2xl font-bold text-emerald-900 mt-1 block">0</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="text-xs text-slate-600 font-medium block">Booked Value</span>
+          <span id="owner-total-revenue" class="text-2xl font-bold text-slate-900 mt-1 block">₹0</span>
+        </div>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Live Cloud Sync (Firebase)
+        </h2>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Paste your Firebase Realtime Database URL below when deploying so bookings sync live across all players' phones.
+        </p>
+        <input
+          id="firebase-url-input"
+          type="url"
+          placeholder="https://momentum-turf-default-rtdb.firebaseio.com"
+          class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+        />
+        <div class="flex items-center gap-2">
+          <button
+            id="save-sync-btn"
+            type="button"
+            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition"
+          >
+            Save Sync URL
+          </button>
+          <span id="sync-status-text" class="text-xs text-slate-500">Local mode (this device)</span>
+        </div>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Quick Walk-In / Maintenance Block
+        </h2>
+        <p class="text-xs text-slate-600">
+          Tap any slot for <span id="owner-zone-label" class="font-semibold text-slate-800">5-a-Side Turf</span> (<span id="owner-date-label" class="font-semibold text-slate-800"></span>) to lock or unlock it.
+        </p>
+        <div id="owner-slots-grid" class="grid grid-cols-3 gap-2"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Confirmation Modal -->
+  <div
+    id="confirm-modal"
+    class="fixed inset-0 bg-slate-900/50 hidden items-center justify-center p-4 z-50"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold">
+        ✓
+      </div>
+      <div>
+        <h3 id="modal-title" class="text-lg font-bold text-slate-900">Spot Reserved!</h3>
+        <p id="modal-details" class="text-sm text-slate-600 mt-1"></p>
+        <div class="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
+          <div>
+            <span class="text-slate-600 block">Pay via UPI (GPay / PhonePe / Paytm)</span>
+            <span class="font-bold text-emerald-800 text-sm">9495915845</span>
+          </div>
+          <button
+            id="modal-copy-upi-btn"
+            type="button"
+            class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition"
+          >
+            Copy UPI
+          </button>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <a
+          id="whatsapp-confirm-link"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm flex items-center justify-center gap-1.5 transition"
+        >
+          Send Booking on WhatsApp
+        </a>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            id="view-my-bookings-btn"
+            type="button"
+            class="w-full py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm transition"
+          >
+            My Bookings
+          </button>
+          <button
+            id="close-modal-btn"
+            type="button"
+            class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm transition"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. App Data & Pricing Rules
+    const STORAGE_KEY = 'momentum_turf_bookings_v2';
+    const UPI_PHONE = '9495915845';
+    const TURF_WHATSAPP = '918921665296';
+    const SYNC_URL_KEY = 'momentum_turf_firebase_url';
+
+    const ZONES = {
+      turf: { name: '5-a-Side Turf', dayRate: 1000, peakRate: 1200 },
+      cricket: { name: 'Leather Pitch', dayRate: 600, peakRate: 800 }
+    };
+
+    const TIME_SLOTS = [
+      { time: '06:00 AM', peak: false },
+      { time: '07:00 AM', peak: false },
+      { time: '08:00 AM', peak: false },
+      { time: '09:00 AM', peak: false },
+      { time: '10:00 AM', peak: false },
+      { time: '04:00 PM', peak: false },
+      { time: '05:00 PM', peak: false },
+      { time: '06:00 PM', peak: true },
+      { time: '07:00 PM', peak: true },
+      { time: '08:00 PM', peak: true },
+      { time: '09:00 PM', peak: true },
+      { time: '10:00 PM', peak: true }
+    ];
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Load saved bookings from localStorage (with sample defaults on first run)
+    function loadSavedBookings() {
+      const defaults = {
+        [`turf|${todayStr}|07:00 PM`]: {
+          zone: 'turf', date: todayStr, slot: '07:00 PM', price: 1200,
+          playerName: 'Sample Booking', phone: '9876543210', isSample: true
+        },
+        [`turf|${todayStr}|08:00 PM`]: {
+          zone: 'turf', date: todayStr, slot: '08:00 PM', price: 1200,
+          playerName: 'Sample Booking', phone: '9876543210', isSample: true
+        },
+        [`cricket|${todayStr}|06:00 PM`]: {
+          zone: 'cricket', date: todayStr, slot: '06:00 PM', price: 800,
+          playerName: 'Sample Booking', phone: '9876543210', isSample: true
+        }
+      };
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaults;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : defaults;
+      } catch (err) {
+        return defaults;
+      }
+    }
+
+    function persistBookings() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bookings));
+      } catch (err) {
+        // Ignore storage errors in restricted environments
+      }
+    }
+
+    const state = {
+      activeTab: 'book',
+      zone: 'turf',
+      date: todayStr,
+      selectedSlot: null,
+      bookings: loadSavedBookings()
+    };
+
+    // 2. Grab HTML Elements
+    const tabBook = document.getElementById('tab-book');
+    const tabBookings = document.getElementById('tab-bookings');
+    const tabOwner = document.getElementById('tab-owner');
+    const viewBook = document.getElementById('view-book');
+    const viewBookings = document.getElementById('view-bookings');
+    const viewOwner = document.getElementById('view-owner');
+    const ownerTotalCount = document.getElementById('owner-total-count');
+    const ownerTotalRevenue = document.getElementById('owner-total-revenue');
+    const firebaseUrlInput = document.getElementById('firebase-url-input');
+    const saveSyncBtn = document.getElementById('save-sync-btn');
+    const syncStatusText = document.getElementById('sync-status-text');
+    const ownerZoneLabel = document.getElementById('owner-zone-label');
+    const ownerDateLabel = document.getElementById('owner-date-label');
+    const ownerSlotsGrid = document.getElementById('owner-slots-grid');
+    const whatsappConfirmLink = document.getElementById('whatsapp-confirm-link');
+    const bookingsCount = document.getElementById('bookings-count');
+    const bookingsList = document.getElementById('bookings-list');
+
+    const zoneButtons = document.querySelectorAll('.zone-btn');
+    const dateInput = document.getElementById('booking-date');
+    const dateLabel = document.getElementById('selected-date-label');
+    const slotsGrid = document.getElementById('slots-grid');
+    const playerNameInput = document.getElementById('player-name');
+    const playerPhoneInput = document.getElementById('player-phone');
+    const formError = document.getElementById('form-error');
+    const summaryText = document.getElementById('summary-text');
+    const summaryPrice = document.getElementById('summary-price');
+    const bookBtn = document.getElementById('book-btn');
+    const confirmModal = document.getElementById('confirm-modal');
+    const modalDetails = document.getElementById('modal-details');
+    const viewMyBookingsBtn = document.getElementById('view-my-bookings-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const copyUpiBtn = document.getElementById('copy-upi-btn');
+    const modalCopyUpiBtn = document.getElementById('modal-copy-upi-btn');
+
+    // 3. Helper Functions
+    function makeKey(zone, date, slot) {
+      return `${zone}|${date}|${slot}`;
+    }
+
+    function getSlotPrice(zoneKey, slotTime) {
+      const slotObj = TIME_SLOTS.find((s) => s.time === slotTime);
+      const zoneObj = ZONES[zoneKey];
+      return slotObj && slotObj.peak ? zoneObj.peakRate : zoneObj.dayRate;
+    }
+
+    function formatRupees(amount) {
+      return `₹${Number(amount).toLocaleString('en-IN')}`;
+    }
+
+    function showError(msg) {
+      if (!msg) {
+        formError.textContent = '';
+        formError.classList.add('hidden');
+      } else {
+        formError.textContent = msg;
+        formError.classList.remove('hidden');
+      }
+    }
+
+    // 4. Render Function
+    function render() {
+      // Count user-created (non-sample) bookings for badge
+      const allBookings = Object.entries(state.bookings);
+      const userBookings = allBookings.filter(([, b]) => !b.isSample);
+      bookingsCount.textContent = userBookings.length;
+
+      // Toggle active tab
+      const activeTabCls = 'py-2 rounded-lg text-xs font-semibold bg-white text-emerald-800 shadow-sm transition';
+      const inactiveTabCls = 'py-2 rounded-lg text-xs font-semibold text-emerald-100 hover:text-white transition';
+      tabBook.className = state.activeTab === 'book' ? activeTabCls : inactiveTabCls;
+      tabBookings.className = state.activeTab === 'bookings' ? activeTabCls : inactiveTabCls;
+      tabOwner.className = state.activeTab === 'owner' ? activeTabCls : inactiveTabCls;
+
+      [viewBook, viewBookings, viewOwner].forEach((v) => {
+        v.classList.add('hidden');
+        v.classList.remove('flex');
+      });
+      const currentView = state.activeTab === 'book' ? viewBook : state.activeTab === 'bookings' ? viewBookings : viewOwner;
+      currentView.classList.remove('hidden');
+      currentView.classList.add('flex');
+
+      // Update zone button styles
+      zoneButtons.forEach((btn) => {
+        const isActive = btn.dataset.zone === state.zone;
+        btn.className = isActive
+          ? 'zone-btn text-left p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 transition'
+          : 'zone-btn text-left p-3 rounded-xl border-2 border-slate-200 bg-white hover:border-slate-300 transition';
+      });
+
+      // Update date label
+      dateInput.value = state.date;
+      dateLabel.textContent = state.date === todayStr ? 'Today' : state.date;
+
+      // Render time slots with price
+      slotsGrid.innerHTML = '';
+      TIME_SLOTS.forEach((slotObj) => {
+        const slot = slotObj.time;
+        const price = getSlotPrice(state.zone, slot);
+        const key = makeKey(state.zone, state.date, slot);
+        const isBooked = Boolean(state.bookings[key]);
+        const isSelected = state.selectedSlot === slot;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.disabled = isBooked;
+        btn.innerHTML = `
+          <span class="block font-semibold">${slot}</span>
+          <span class="block text-[10px] mt-0.5 opacity-80">${isBooked ? 'Booked' : formatRupees(price)}</span>
+        `;
+
+        if (isBooked) {
+          btn.className = 'py-2 px-1.5 rounded-xl text-xs bg-slate-200 text-slate-400 cursor-not-allowed';
+        } else if (isSelected) {
+          btn.className = 'py-2 px-1.5 rounded-xl text-xs bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-600 ring-offset-1 transition';
+        } else {
+          btn.className = 'py-2 px-1.5 rounded-xl text-xs bg-white border border-slate-300 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 transition';
+        }
+
+        btn.addEventListener('click', () => {
+          state.selectedSlot = isSelected ? null : slot;
+          showError('');
+          render();
+        });
+
+        slotsGrid.appendChild(btn);
+      });
+
+      // Update bottom summary & price
+      if (state.selectedSlot) {
+        const price = getSlotPrice(state.zone, state.selectedSlot);
+        summaryText.textContent = `${ZONES[state.zone].name} • ${state.selectedSlot}`;
+        summaryPrice.textContent = formatRupees(price);
+        bookBtn.disabled = false;
+      } else {
+        summaryText.textContent = 'No slot selected';
+        summaryPrice.textContent = '₹0';
+        bookBtn.disabled = true;
+      }
+
+      // Render My Bookings list
+      bookingsList.innerHTML = '';
+      if (userBookings.length === 0) {
+        bookingsList.innerHTML = `
+          <div class="text-center py-10 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50">
+            <p class="text-sm font-semibold text-slate-700">No bookings yet</p>
+            <p class="text-xs text-slate-500 mt-1">Switch to "Book a Spot" to reserve a slot.</p>
+          </div>
+        `;
+      } else {
+        userBookings.forEach(([key, b]) => {
+          const card = document.createElement('div');
+          card.className = 'p-3.5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-3';
+          card.innerHTML = `
+            <div>
+              <div class="text-sm font-semibold text-slate-900">${ZONES[b.zone].name}</div>
+              <div class="text-xs text-slate-600 mt-0.5">${b.date} • ${b.slot}</div>
+              <div class="text-xs text-slate-500 mt-1">${b.playerName} (${b.phone}) • <span class="font-semibold text-emerald-700">${formatRupees(b.price)}</span></div>
+            </div>
+            <button
+              type="button"
+              data-cancel-key="${key}"
+              class="cancel-booking-btn shrink-0 px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 text-xs font-semibold transition"
+            >
+              Cancel
+            </button>
+          `;
+          bookingsList.appendChild(card);
+        });
+
+        bookingsList.querySelectorAll('.cancel-booking-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const key = btn.dataset.cancelKey;
+            delete state.bookings[key];
+            persistBookings();
+            deleteBookingFromCloud(key);
+            render();
+          });
+        });
+      }
+    }
+
+    // 5. Event Listeners
+    tabBook.addEventListener('click', () => {
+      state.activeTab = 'book';
+      render();
+    });
+
+    tabBookings.addEventListener('click', () => {
+      state.activeTab = 'bookings';
+      render();
+    });
+
+    tabOwner.addEventListener('click', () => {
+      state.activeTab = 'owner';
+      render();
+    });
+
+    try {
+      const savedUrl = localStorage.getItem(SYNC_URL_KEY);
+      if (savedUrl) {
+        firebaseUrlInput.value = savedUrl;
+        syncStatusText.textContent = 'Sync URL saved (ready for live deploy)';
+      }
+    } catch (e) {}
+
+    saveSyncBtn.addEventListener('click', () => {
+      const url = firebaseUrlInput.value.trim();
+      try {
+        if (url) {
+          localStorage.setItem(SYNC_URL_KEY, url);
+          syncStatusText.textContent = 'Sync URL saved — syncing...';
+          syncFromCloud();
+        } else {
+          localStorage.removeItem(SYNC_URL_KEY);
+          syncStatusText.textContent = 'Local mode (this device)';
+        }
+      } catch (e) {}
+    });
+
+    zoneButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.zone = btn.dataset.zone;
+        state.selectedSlot = null;
+        render();
+      });
+    });
+
+    dateInput.min = todayStr;
+    dateInput.addEventListener('change', (e) => {
+      if (e.target.value) {
+        state.date = e.target.value;
+        state.selectedSlot = null;
+        render();
+      }
+    });
+
+    bookBtn.addEventListener('click', () => {
+      if (!state.selectedSlot) return;
+
+      const name = playerNameInput.value.trim();
+      const phone = playerPhoneInput.value.replace(/\D/g, '');
+
+      if (name.length < 2) {
+        showError('Please enter a player or team name.');
+        playerNameInput.focus();
+        return;
+      }
+      if (phone.length !== 10) {
+        showError('Please enter a valid 10-digit mobile number.');
+        playerPhoneInput.focus();
+        return;
+      }
+
+      showError('');
+      const price = getSlotPrice(state.zone, state.selectedSlot);
+      const key = makeKey(state.zone, state.date, state.selectedSlot);
+
+      const newBooking = {
+        zone: state.zone,
+        date: state.date,
+        slot: state.selectedSlot,
+        price,
+        playerName: name,
+        phone,
+        isSample: false
+      };
+      state.bookings[key] = newBooking;
+      persistBookings();
+      pushBookingToCloud(key, newBooking);
+
+      const waMsg = `Hi Momentum Turf! I booked ${ZONES[state.zone].name} on ${state.date} at ${state.selectedSlot} (${formatRupees(price)}). Name: ${name}, Phone: ${phone}. Paying via UPI to ${UPI_PHONE}.`;
+      whatsappConfirmLink.href = `https://wa.me/${TURF_WHATSAPP}?text=${encodeURIComponent(waMsg)}`;
+      modalDetails.textContent = `${ZONES[state.zone].name} on ${state.date} at ${state.selectedSlot} (${formatRupees(price)}) is reserved for ${name}.`;
+      confirmModal.classList.remove('hidden');
+      confirmModal.classList.add('flex');
+
+      state.selectedSlot = null;
+      render();
+    });
+
+    viewMyBookingsBtn.addEventListener('click', () => {
+      confirmModal.classList.add('hidden');
+      confirmModal.classList.remove('flex');
+      state.activeTab = 'bookings';
+      render();
+    });
+
+    function copyUpiNumber(buttonEl, defaultLabel) {
+      const done = () => {
+        buttonEl.textContent = 'Copied!';
+        setTimeout(() => {
+          buttonEl.textContent = defaultLabel;
+        }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(UPI_PHONE).then(done).catch(() => {
+          fallbackCopy(UPI_PHONE);
+          done();
+        });
+      } else {
+        fallbackCopy(UPI_PHONE);
+        done();
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    copyUpiBtn.addEventListener('click', () => copyUpiNumber(copyUpiBtn, 'Copy'));
+    modalCopyUpiBtn.addEventListener('click', () => copyUpiNumber(modalCopyUpiBtn, 'Copy UPI'));
+
+    closeModalBtn.addEventListener('click', () => {
+      confirmModal.classList.add('hidden');
+      confirmModal.classList.remove('flex');
+    });
+
+    function renderOwnerView() {
+      const userBookings = Object.values(state.bookings).filter((b) => !b.isSample);
+      const totalRev = userBookings.reduce((sum, b) => sum + (Number(b.price) || 0), 0);
+      ownerTotalCount.textContent = userBookings.length;
+      ownerTotalRevenue.textContent = formatRupees(totalRev);
+      ownerZoneLabel.textContent = ZONES[state.zone].name;
+      ownerDateLabel.textContent = state.date;
+
+      ownerSlotsGrid.innerHTML = '';
+      TIME_SLOTS.forEach((slotObj) => {
+        const slot = slotObj.time;
+        const key = makeKey(state.zone, state.date, slot);
+        const existing = state.bookings[key];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = existing ? `${slot} (Locked)` : slot;
+        btn.className = existing
+          ? 'py-2 px-1.5 rounded-xl text-[11px] font-semibold bg-amber-100 border border-amber-300 text-amber-900 transition'
+          : 'py-2 px-1.5 rounded-xl text-[11px] font-medium bg-white border border-slate-300 text-slate-700 hover:border-emerald-500 transition';
+        btn.addEventListener('click', () => {
+          if (state.bookings[key]) {
+            delete state.bookings[key];
+          } else {
+            state.bookings[key] = {
+              zone: state.zone,
+              date: state.date,
+              slot,
+              price: getSlotPrice(state.zone, slot),
+              playerName: 'Walk-in / Blocked',
+              phone: '8921665296',
+              isSample: false
+            };
+          }
+          persistBookings();
+          render();
+          renderOwnerView();
+        });
+        ownerSlotsGrid.appendChild(btn);
+      });
+    }
+
+    const origRender = render;
+    render = function () {
+      origRender();
+      renderOwnerView();
+    };
+
+    // Initial render
+    render();
+    // Live Firebase Realtime Database REST Sync
+    function getFirebaseBaseUrl() {
+      try {
+        const u = (localStorage.getItem(SYNC_URL_KEY) || '').trim().replace(/\/+$/, '');
+        return u.startsWith('https://') ? u : '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function safeFirebaseKey(key) {
+      return encodeURIComponent(key.replace(/[.#$\[\]]/g, '_'));
+    }
+
+    async function syncFromCloud() {
+      const base = getFirebaseBaseUrl();
+      if (!base) return;
+      try {
+        const res = await fetch(`${base}/bookings.json`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && typeof data === 'object') {
+          state.bookings = data;
+          persistBookings();
+          render();
+          syncStatusText.textContent = 'Synced with Firebase';
+        }
+      } catch (err) {
+        syncStatusText.textContent = 'Offline (using saved cache)';
+      }
+    }
+
+    async function pushBookingToCloud(key, bookingObj) {
+      const base = getFirebaseBaseUrl();
+      if (!base) return;
+      try {
+        await fetch(`${base}/bookings/${safeFirebaseKey(key)}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookingObj)
+        });
+      } catch (err) {}
+    }
+
+    async function deleteBookingFromCloud(key) {
+      const base = getFirebaseBaseUrl();
+      if (!base) return;
+      try {
+        await fetch(`${base}/bookings/${safeFirebaseKey(key)}.json`, { method: 'DELETE' });
+      } catch (err) {}
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+    syncFromCloud();
+
+  </script>
+</body>
+</html>
