@@ -205,7 +205,13 @@
         <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500">
           Saved Reservations
         </h2>
-        <span class="text-xs text-slate-500">Saved on this device</span>
+        <button
+          id="enable-notif-btn"
+          type="button"
+          class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-semibold hover:bg-emerald-100 transition"
+        >
+          Enable Alerts
+        </button>
       </div>
       <div id="bookings-list" class="space-y-3 flex-1"></div>
     </div>
@@ -681,6 +687,67 @@
           localStorage.setItem(SYNC_URL_KEY, url);
           syncStatusText.textContent = 'Sync URL saved — syncing...';
           syncFromCloud();
+
+    const enableNotifBtn = document.getElementById('enable-notif-btn');
+
+    function updateNotifButton() {
+      if (!('Notification' in window)) {
+        enableNotifBtn.textContent = 'Alerts Unsupported';
+        enableNotifBtn.disabled = true;
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        enableNotifBtn.textContent = 'Alerts On ✓';
+      } else if (Notification.permission === 'denied') {
+        enableNotifBtn.textContent = 'Alerts Blocked';
+      } else {
+        enableNotifBtn.textContent = 'Enable Alerts';
+      }
+    }
+
+    async function triggerBackgroundSync() {
+      try {
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.sync.register('sync-bookings');
+        }
+      } catch (e) {}
+    }
+
+    async function sendBookingNotification(title, body) {
+      try {
+        if ('Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification(title, {
+            body,
+            icon: './icon-192.png',
+            badge: './icon-192.png'
+          });
+        }
+      } catch (e) {}
+    }
+
+    enableNotifBtn.addEventListener('click', async () => {
+      if (!('Notification' in window)) return;
+      try {
+        const perm = await Notification.requestPermission();
+        updateNotifButton();
+        if (perm === 'granted') {
+          sendBookingNotification('Momentum Turf Alerts Enabled', 'You will receive booking confirmations here.');
+        }
+      } catch (e) {}
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'BACKGROUND_SYNC_COMPLETE') {
+          syncFromCloud();
+        }
+      });
+    }
+
+    updateNotifButton();
+
         } else {
           localStorage.removeItem(SYNC_URL_KEY);
           syncStatusText.textContent = 'Local mode (this device)';
@@ -738,6 +805,8 @@
       state.bookings[key] = newBooking;
       persistBookings();
       pushBookingToCloud(key, newBooking);
+      triggerBackgroundSync();
+      sendBookingNotification("Spot Reserved!", `${ZONES[state.zone].name} • ${state.date} at ${state.selectedSlot}`);
 
       const waMsg = `Hi Momentum Turf! I booked ${ZONES[state.zone].name} on ${state.date} at ${state.selectedSlot} (${formatRupees(price)}). Name: ${name}, Phone: ${phone}. Paying via UPI to ${UPI_PHONE}.`;
       whatsappConfirmLink.href = `https://wa.me/${TURF_WHATSAPP}?text=${encodeURIComponent(waMsg)}`;
@@ -900,6 +969,67 @@
       });
     }
     syncFromCloud();
+
+    const enableNotifBtn = document.getElementById('enable-notif-btn');
+
+    function updateNotifButton() {
+      if (!('Notification' in window)) {
+        enableNotifBtn.textContent = 'Alerts Unsupported';
+        enableNotifBtn.disabled = true;
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        enableNotifBtn.textContent = 'Alerts On ✓';
+      } else if (Notification.permission === 'denied') {
+        enableNotifBtn.textContent = 'Alerts Blocked';
+      } else {
+        enableNotifBtn.textContent = 'Enable Alerts';
+      }
+    }
+
+    async function triggerBackgroundSync() {
+      try {
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.sync.register('sync-bookings');
+        }
+      } catch (e) {}
+    }
+
+    async function sendBookingNotification(title, body) {
+      try {
+        if ('Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification(title, {
+            body,
+            icon: './icon-192.png',
+            badge: './icon-192.png'
+          });
+        }
+      } catch (e) {}
+    }
+
+    enableNotifBtn.addEventListener('click', async () => {
+      if (!('Notification' in window)) return;
+      try {
+        const perm = await Notification.requestPermission();
+        updateNotifButton();
+        if (perm === 'granted') {
+          sendBookingNotification('Momentum Turf Alerts Enabled', 'You will receive booking confirmations here.');
+        }
+      } catch (e) {}
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'BACKGROUND_SYNC_COMPLETE') {
+          syncFromCloud();
+        }
+      });
+    }
+
+    updateNotifButton();
+
 
   </script>
 </body>
