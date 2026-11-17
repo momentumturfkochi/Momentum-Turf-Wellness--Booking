@@ -115,7 +115,7 @@
         <section aria-labelledby="slot-heading">
           <div class="flex items-center justify-between mb-2">
             <h2 id="slot-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              3. Tap a Time Slot
+              3. Tap 1 or More Time Slots
             </h2>
             <div class="flex items-center gap-3 text-xs text-slate-500">
               <span class="inline-flex items-center gap-1">
@@ -329,18 +329,23 @@
       <div>
         <h3 id="modal-title" class="text-lg font-bold text-slate-900">Spot Reserved!</h3>
         <p id="modal-details" class="text-sm text-slate-600 mt-1"></p>
-        <div class="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
-          <div>
-            <span class="text-slate-600 block">Pay via UPI (GPay / PhonePe / Paytm)</span>
-            <span class="font-bold text-emerald-800 text-sm">9495915845</span>
+        <div class="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2.5 text-xs">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-slate-600 block">Pay Total via UPI (GPay / PhonePe / Paytm)</span>
+              <span class="font-bold text-emerald-800 text-sm">9495915845</span>
+            </div>
+            <button
+              id="modal-copy-upi-btn"
+              type="button"
+              class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition"
+            >
+              Copy UPI
+            </button>
           </div>
-          <button
-            id="modal-copy-upi-btn"
-            type="button"
-            class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition"
-          >
-            Copy UPI
-          </button>
+          <div class="bg-white rounded-xl p-2 border border-emerald-200 flex justify-center">
+            <img src="./upi-qr.png" alt="Momentum Turf UPI QR Code" class="w-36 h-auto rounded-lg" />
+          </div>
         </div>
       </div>
       <div class="space-y-2">
@@ -447,7 +452,7 @@
       activeTab: 'book',
       zone: 'turf',
       date: todayStr,
-      selectedSlot: null,
+      selectedSlots: [],
       bookings: loadSavedBookings()
     };
 
@@ -561,7 +566,7 @@
         const price = getSlotPrice(state.zone, slot);
         const key = makeKey(state.zone, state.date, slot);
         const isBooked = Boolean(state.bookings[key]);
-        const isSelected = state.selectedSlot === slot;
+        const isSelected = state.selectedSlots.includes(slot);
 
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -580,7 +585,11 @@
         }
 
         btn.addEventListener('click', () => {
-          state.selectedSlot = isSelected ? null : slot;
+          if (isSelected) {
+            state.selectedSlots = state.selectedSlots.filter((t) => t !== slot);
+          } else {
+            state.selectedSlots = [...state.selectedSlots, slot];
+          }
           showError('');
           render();
         });
@@ -588,15 +597,23 @@
         slotsGrid.appendChild(btn);
       });
 
-      // Update bottom summary & price
-      if (state.selectedSlot) {
-        const price = getSlotPrice(state.zone, state.selectedSlot);
-        summaryText.textContent = `${ZONES[state.zone].name} • ${state.selectedSlot}`;
-        summaryPrice.textContent = formatRupees(price);
+      // Update bottom summary & combined price
+      if (state.selectedSlots.length > 0) {
+        const orderedSlots = TIME_SLOTS
+          .map((x) => x.time)
+          .filter((t) => state.selectedSlots.includes(t));
+        const totalPrice = orderedSlots.reduce((sum, t) => sum + getSlotPrice(state.zone, t), 0);
+        const hrsLabel = orderedSlots.length === 1 ? '1 hr' : `${orderedSlots.length} hrs`;
+        summaryText.textContent = `${ZONES[state.zone].name} • ${hrsLabel} (${orderedSlots.join(', ')})`;
+        summaryPrice.textContent = formatRupees(totalPrice);
+        bookBtn.textContent = orderedSlots.length === 1
+          ? `Book 1 Slot & Pay (${formatRupees(totalPrice)})`
+          : `Book ${orderedSlots.length} Slots & Pay (${formatRupees(totalPrice)})`;
         bookBtn.disabled = false;
       } else {
-        summaryText.textContent = 'No slot selected';
+        summaryText.textContent = 'No slots selected';
         summaryPrice.textContent = '₹0';
+        bookBtn.textContent = 'Book Spot Now';
         bookBtn.disabled = true;
       }
 
@@ -788,7 +805,7 @@
     zoneButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         state.zone = btn.dataset.zone;
-        state.selectedSlot = null;
+        state.selectedSlots = [];
         render();
       });
     });
@@ -797,13 +814,13 @@
     dateInput.addEventListener('change', (e) => {
       if (e.target.value) {
         state.date = e.target.value;
-        state.selectedSlot = null;
+        state.selectedSlots = [];
         render();
       }
     });
 
     bookBtn.addEventListener('click', () => {
-      if (!state.selectedSlot) return;
+      if (state.selectedSlots.length === 0) return;
 
       const name = playerNameInput.value.trim();
       const phone = playerPhoneInput.value.replace(/\D/g, '');
@@ -820,31 +837,40 @@
       }
 
       showError('');
-      const price = getSlotPrice(state.zone, state.selectedSlot);
-      const key = makeKey(state.zone, state.date, state.selectedSlot);
+      const orderedSlots = TIME_SLOTS
+        .map((x) => x.time)
+        .filter((t) => state.selectedSlots.includes(t));
+      let totalAmount = 0;
 
-      const newBooking = {
-        zone: state.zone,
-        date: state.date,
-        slot: state.selectedSlot,
-        price,
-        playerName: name,
-        phone,
-        isSample: false
-      };
-      state.bookings[key] = newBooking;
+      orderedSlots.forEach((slot) => {
+        const price = getSlotPrice(state.zone, slot);
+        totalAmount += price;
+        const key = makeKey(state.zone, state.date, slot);
+        const newBooking = {
+          zone: state.zone,
+          date: state.date,
+          slot,
+          price,
+          playerName: name,
+          phone,
+          isSample: false
+        };
+        state.bookings[key] = newBooking;
+        pushBookingToCloud(key, newBooking);
+      });
+
       persistBookings();
-      pushBookingToCloud(key, newBooking);
       triggerBackgroundSync();
-      sendBookingNotification("Spot Reserved!", `${ZONES[state.zone].name} • ${state.date} at ${state.selectedSlot}`);
+      const slotsLabel = orderedSlots.join(', ');
+      sendBookingNotification("Spots Reserved!", `${ZONES[state.zone].name} • ${state.date} (${slotsLabel})`);
 
-      const waMsg = `Hi Momentum Turf! I booked ${ZONES[state.zone].name} on ${state.date} at ${state.selectedSlot} (${formatRupees(price)}). Name: ${name}, Phone: ${phone}. Paying via UPI to ${UPI_PHONE}.`;
+      const waMsg = `Hi Momentum Turf! I booked ${ZONES[state.zone].name} on ${state.date} for ${orderedSlots.length} hr(s): ${slotsLabel} (Total: ${formatRupees(totalAmount)}). Name: ${name}, Phone: ${phone}. Paying via UPI to ${UPI_PHONE}.`;
       whatsappConfirmLink.href = `https://wa.me/${TURF_WHATSAPP}?text=${encodeURIComponent(waMsg)}`;
-      modalDetails.textContent = `${ZONES[state.zone].name} on ${state.date} at ${state.selectedSlot} (${formatRupees(price)}) is reserved for ${name}.`;
+      modalDetails.textContent = `${ZONES[state.zone].name} on ${state.date} (${slotsLabel}) — Total ${formatRupees(totalAmount)} reserved for ${name}.`;
       confirmModal.classList.remove('hidden');
       confirmModal.classList.add('flex');
 
-      state.selectedSlot = null;
+      state.selectedSlots = [];
       render();
     });
 
