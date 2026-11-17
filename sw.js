@@ -1,5 +1,5 @@
 const CACHE_NAME = 'momentum-turf-v1';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-1024.png', './upi-qr.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
