@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Momentum Turf &amp; Wellness — Spot Booking</title>
   <meta name="theme-color" content="#047857" />
   <link rel="manifest" href="./manifest.json" />
@@ -12,14 +12,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    body {
+    html, body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      min-height: 100dvh;
+      margin: 0;
+      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+      overflow-x: hidden;
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-900 min-h-screen flex justify-center p-3 sm:p-6">
+<body class="bg-slate-100 text-slate-900 min-h-[100dvh] flex justify-center p-2 sm:p-4 md:p-6">
   <!-- Mobile App Container -->
-  <main class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200 flex flex-col">
+  <main class="w-full max-w-md md:max-w-3xl bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-slate-200 flex flex-col">
     <!-- App Header -->
     <header class="bg-emerald-700 text-white px-5 pt-5 pb-4">
       <div class="flex items-center justify-between">
@@ -68,7 +74,7 @@
 
     <!-- View 1: Book a Spot -->
     <div id="view-book" class="flex-1 flex flex-col">
-      <div class="p-5 space-y-5 flex-1">
+      <div class="p-4 sm:p-5 space-y-5 flex-1 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
         <!-- 1. Choose Pitch / Zone -->
         <section aria-labelledby="pitch-heading">
           <h2 id="pitch-heading" class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
@@ -145,7 +151,7 @@
             Tap any start time below — or tap multiple slots to combine hours.
           </p>
 
-          <div id="slots-grid" class="grid grid-cols-3 gap-2"></div>
+          <div id="slots-grid" class="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2"></div>
           <p class="text-[11px] text-slate-500 mt-2">
             Peak evening hours (6:00 PM – 10:00 PM) use floodlight rates.
           </p>
@@ -658,6 +664,17 @@
       btn.addEventListener('click', () => {
         state.durationHrs = Number(btn.dataset.hrs);
         render();
+
+    // Handle foldable screen fold/unfold resize smoothly
+    window.addEventListener('resize', () => {
+      document.documentElement.style.minHeight = window.innerHeight + 'px';
+    });
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        document.documentElement.style.minHeight = window.innerHeight + 'px';
+      }, 150);
+    });
+
       });
     });
 

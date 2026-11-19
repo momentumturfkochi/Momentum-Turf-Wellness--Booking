@@ -1,4 +1,4 @@
-const CACHE_NAME = 'momentum-turf-v4';
+const CACHE_NAME = 'momentum-turf-v5';
 const ASSETS = [
   './',
   './index.html',
